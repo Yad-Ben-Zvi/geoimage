@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Eshmor Map</title>
+    <title>ישראל נגלית לעין - מפת תמונות</title>
     
     <!-- Leaflet CSS -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
@@ -32,6 +32,18 @@
             font-weight: bold;
             margin-bottom: 5px;
         }
+        .photo-icon {
+            background: #3388ff;
+            border: 2px solid #fff;
+            border-radius: 50%;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+        .photo-icon svg {
+            width: 16px;
+            height: 16px;
+            margin: 4px;
+            fill: #fff;
+        }
     </style>
 </head>
 <body>
@@ -45,6 +57,16 @@
     <script src="https://cdn.jsdelivr.net/npm/leaflet.locatecontrol@0.79.0/dist/L.Control.Locate.min.js"></script>
 
     <script>
+        // Create custom photo icon
+        const photoIcon = L.divIcon({
+            className: 'photo-icon',
+            html: `<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/>
+                  </svg>`,
+            iconSize: [24, 24],
+            iconAnchor: [12, 12]
+        });
+
         // Initialize the map
         const map = L.map('map', {
             zoomControl: false  // We'll add it back in a better position
@@ -179,7 +201,7 @@
             .then(data => {
                 L.geoJSON(data, {
                     pointToLayer: function(feature, latlng) {
-                        return L.marker(latlng);
+                        return L.marker(latlng, { icon: photoIcon });
                     },
                     onEachFeature: function(feature, layer) {
                         layer.bindPopup(createPopupContent(feature));
