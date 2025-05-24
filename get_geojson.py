@@ -5,6 +5,7 @@ import json
 import sys
 import argparse
 from typing import Dict, Any
+import os
 
 def parse_args():
     """Parse command line arguments."""
@@ -17,6 +18,12 @@ def parse_args():
         type=int,
         default=10000,
         help='Maximum number of results to fetch (default: 10000)'
+    )
+    parser.add_argument(
+        '-o', '--output',
+        type=str,
+        default='site/data.geojson',
+        help='Output file path (default: site/data.geojson)'
     )
     return parser.parse_args()
 
@@ -97,7 +104,16 @@ def main():
     try:
         data = fetch_data(args.limit)
         geojson = convert_to_geojson(data)
-        json.dump(geojson, sys.stdout, ensure_ascii=False, indent=2)
+        
+        # Ensure the output directory exists
+        os.makedirs(os.path.dirname(args.output), exist_ok=True)
+        
+        # Write to file
+        with open(args.output, 'w', encoding='utf-8') as f:
+            json.dump(geojson, f, ensure_ascii=False, indent=2)
+            
+        print(f"Successfully wrote {len(geojson['features'])} features to {args.output}")
+        
     except requests.exceptions.RequestException as e:
         print(f"Error fetching data: {e}", file=sys.stderr)
         sys.exit(1)

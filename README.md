@@ -11,6 +11,17 @@ An interactive web application that displays georeferenced items from the Eshmor
 - Image previews in popups
 - Full-screen map view
 
+## Project Structure
+
+```
+.
+├── get_geojson.py    # Python script to fetch and convert data
+├── requirements.txt  # Python dependencies
+└── site/            # Web application files
+    ├── index.html   # Main web interface
+    └── data.geojson # Generated GeoJSON data
+```
+
 ## Setup
 
 1. Install Python dependencies:
@@ -20,10 +31,14 @@ pip install -r requirements.txt
 
 2. Generate GeoJSON data:
 ```bash
-./get_geojson.py > data/data.geojson
+./get_geojson.py
+```
+This will create `site/data.geojson` by default. You can specify a different output location:
+```bash
+./get_geojson.py -o path/to/output.geojson
 ```
 
-3. Open `index.html` in a web browser
+3. Open `site/index.html` in a web browser
 
 ## Usage
 
@@ -37,4 +52,8 @@ pip install -r requirements.txt
 The project consists of two main components:
 
 1. `get_geojson.py` - Python script to fetch and convert data from the Eshmor API
-2. `index.html` - Web interface using Leaflet.js for map visualization
+2. `site/index.html` - Web interface using Leaflet.js for map visualization
+
+## License
+
+MIT License
