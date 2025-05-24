@@ -126,6 +126,39 @@
             return content;
         }
 
+        // Function to center map on Israel
+        function centerOnIsrael() {
+            const israelCenter = [31.7683, 35.2137]; // Jerusalem coordinates
+            map.setView(israelCenter, 7);
+        }
+
+        // Function to handle initial location
+        function handleInitialLocation() {
+            if ("geolocation" in navigator) {
+                navigator.geolocation.getCurrentPosition(
+                    // Success callback
+                    (position) => {
+                        const { latitude, longitude } = position.coords;
+                        map.setView([latitude, longitude], 10);
+                    },
+                    // Error callback
+                    (error) => {
+                        console.log("Geolocation error:", error);
+                        centerOnIsrael();
+                    },
+                    // Options
+                    {
+                        enableHighAccuracy: true,
+                        timeout: 5000,
+                        maximumAge: 0
+                    }
+                );
+            } else {
+                console.log("Geolocation not supported");
+                centerOnIsrael();
+            }
+        }
+
         // Load and display GeoJSON data
         fetch('data.geojson')
             .then(response => response.json())
@@ -141,17 +174,14 @@
 
                 map.addLayer(markers);
 
-                // Fit map to show all markers
-                if (data.features.length > 0) {
-                    const bounds = markers.getBounds();
-                    map.fitBounds(bounds, {
-                        padding: [50, 50]
-                    });
-                }
+                // Try to get user's location first
+                handleInitialLocation();
             })
             .catch(error => {
                 console.error('Error loading GeoJSON:', error);
                 alert('Error loading map data. Please try again later.');
+                // If data loading fails, still try to get user's location
+                handleInitialLocation();
             });
 
         // Handle window resize
