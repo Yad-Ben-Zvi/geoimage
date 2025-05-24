@@ -88,6 +88,18 @@
             flyTo: true,
             locateOptions: {
                 enableHighAccuracy: true
+            },
+            showPopup: false,
+            showCompass: true,
+            showMarker: true,
+            markerClass: L.CircleMarker,
+            markerStyle: {
+                color: '#136AEC',
+                fillColor: '#2A93EE',
+                fillOpacity: 0.7,
+                weight: 2,
+                opacity: 0.9,
+                radius: 5
             }
         }).addTo(map);
 
@@ -140,6 +152,8 @@
                     (position) => {
                         const { latitude, longitude } = position.coords;
                         map.setView([latitude, longitude], 15);
+                        // Start following user's location
+                        locateControl.start();
                     },
                     // Error callback
                     (error) => {
