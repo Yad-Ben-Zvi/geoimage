@@ -129,7 +129,7 @@
         // Function to center map on Israel
         function centerOnIsrael() {
             const israelCenter = [31.7683, 35.2137]; // Jerusalem coordinates
-            map.setView(israelCenter, 7);
+            map.setView(israelCenter, 8);
         }
 
         // Function to handle initial location
@@ -139,7 +139,7 @@
                     // Success callback
                     (position) => {
                         const { latitude, longitude } = position.coords;
-                        map.setView([latitude, longitude], 10);
+                        map.setView([latitude, longitude], 15);
                     },
                     // Error callback
                     (error) => {
