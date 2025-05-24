@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Eshmor Map</title>
+    
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <!-- Leaflet.MarkerCluster CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" />
+    <!-- Leaflet.Locate CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet.locatecontrol@0.79.0/dist/L.Control.Locate.min.css" />
+    
+    <style>
+        html, body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+        }
+        #map {
+            width: 100%;
+            height: 100%;
+        }
+        .popup-image {
+            max-width: 300px;
+            max-height: 200px;
+            margin-bottom: 10px;
+        }
+        .popup-title {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div id="map"></div>
+
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <!-- Leaflet.MarkerCluster JS -->
+    <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+    <!-- Leaflet.Locate JS -->
+    <script src="https://cdn.jsdelivr.net/npm/leaflet.locatecontrol@0.79.0/dist/L.Control.Locate.min.js"></script>
+
+    <script>
+        // Initialize the map
+        const map = L.map('map', {
+            zoomControl: false  // We'll add it back in a better position
+        });
+
+        // Define base layers
+        const osmLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19,
+            attribution: '© OpenStreetMap contributors'
+        });
+
+        const satelliteLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+            maxZoom: 19,
+            attribution: '© Esri'
+        });
+
+        const terrainLayer = L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', {
+            maxZoom: 17,
+            attribution: '© OpenTopoMap'
+        });
+
+        const darkLayer = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+            maxZoom: 19,
+            attribution: '© OpenStreetMap contributors, © CartoDB'
+        });
+
+        // Add default layer
+        osmLayer.addTo(map);
+
+        // Add zoom control to the top left
+        L.control.zoom({
+            position: 'topleft'
+        }).addTo(map);
+
+        // Add geolocation control
+        const locateControl = L.control.locate({
+            position: 'bottomright',
+            strings: {
+                title: "Show my location"
+            },
+            flyTo: true,
+            locateOptions: {
+                enableHighAccuracy: true
+            }
+        }).addTo(map);
+
+        // Add layer control
+        const baseMaps = {
+            "OpenStreetMap": osmLayer,
+            "Satellite": satelliteLayer,
+            "Terrain": terrainLayer,
+            "Dark": darkLayer
+        };
+
+        L.control.layers(baseMaps, null, {
+            position: 'topright'
+        }).addTo(map);
+
+        // Create a marker cluster group
+        const markers = L.markerClusterGroup({
+            maxClusterRadius: 50,
+            spiderfyOnMaxZoom: true,
+            showCoverageOnHover: false,
+            zoomToBoundsOnClick: true
+        });
+
+        // Function to create popup content
+        function createPopupContent(feature) {
+            const properties = feature.properties;
+            let content = '';
+            
+            if (properties.image) {
+                content += `<img src="${properties.image}" class="popup-image" alt="${properties.title}">`;
+            }
+            
+            content += `<div class="popup-title">${properties.title}</div>`;
+            content += `<div>ID: ${properties.id}</div>`;
+            
+            return content;
+        }
+
+        // Load and display GeoJSON data
+        fetch('data/data.geojson')
+            .then(response => response.json())
+            .then(data => {
+                L.geoJSON(data, {
+                    pointToLayer: function(feature, latlng) {
+                        return L.marker(latlng);
+                    },
+                    onEachFeature: function(feature, layer) {
+                        layer.bindPopup(createPopupContent(feature));
+                    }
+                }).addTo(markers);
+
+                map.addLayer(markers);
+
+                // Fit map to show all markers
+                if (data.features.length > 0) {
+                    const bounds = markers.getBounds();
+                    map.fitBounds(bounds, {
+                        padding: [50, 50]
+                    });
+                }
+            })
+            .catch(error => {
+                console.error('Error loading GeoJSON:', error);
+                alert('Error loading map data. Please try again later.');
+            });
+
+        // Handle window resize
+        window.addEventListener('resize', () => {
+            map.invalidateSize();
+        });
+    </script>
+</body>
+</html>
