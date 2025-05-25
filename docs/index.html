@@ -169,13 +169,19 @@
         }
 
         // Function to handle initial location
-        function handleInitialLocation() {
+        function handleInitialLocation(itemLatLngs) {
             if ("geolocation" in navigator) {
                 navigator.geolocation.getCurrentPosition(
                     // Success callback
                     (position) => {
                         const { latitude, longitude } = position.coords;
-                        map.setView([latitude, longitude], 15);
+                        if (itemLatLngs && itemLatLngs.length > 0) {
+                            // Create a LatLngBounds that includes user and at least one item
+                            const bounds = L.latLngBounds([ [latitude, longitude], ...itemLatLngs ]);
+                            map.fitBounds(bounds, { padding: [50, 50] });
+                        } else {
+                            map.setView([latitude, longitude], 15);
+                        }
                         // Start following user's location
                         locateControl.start();
                     },
@@ -201,8 +207,10 @@
         fetch('data.geojson')
             .then(response => response.json())
             .then(data => {
+                const itemLatLngs = [];
                 L.geoJSON(data, {
                     pointToLayer: function(feature, latlng) {
+                        itemLatLngs.push(latlng);
                         return L.marker(latlng, { icon: photoIcon });
                     },
                     onEachFeature: function(feature, layer) {
@@ -212,14 +220,14 @@
 
                 map.addLayer(markers);
 
-                // Try to get user's location first
-                handleInitialLocation();
+                // Try to get user's location first, passing all item locations
+                handleInitialLocation(itemLatLngs);
             })
             .catch(error => {
                 console.error('Error loading GeoJSON:', error);
                 alert('Error loading map data. Please try again later.');
                 // If data loading fails, still try to get user's location
-                handleInitialLocation();
+                handleInitialLocation([]);
             });
 
         // Handle window resize
