@@ -46,6 +46,24 @@
             margin: 4px;
             fill: #fff;
         }
+        .thumbnail-marker {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            overflow: hidden;
+            border: 2px solid #fff;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+            background: #3388ff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .thumbnail-marker img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
     </style>
 </head>
 <body>
@@ -228,8 +246,19 @@
                 const itemLatLngs = [];
                 L.geoJSON(data, {
                     pointToLayer: function(feature, latlng) {
-                        itemLatLngs.push(latlng);
-                        return L.marker(latlng, { icon: photoIcon });
+                        const imgUrl = feature.properties.image;
+                        if (imgUrl) {
+                            const thumbIcon = L.divIcon({
+                                className: 'thumbnail-marker',
+                                html: `<img src="${imgUrl}" alt="" loading="lazy">`,
+                                iconSize: [32, 32],
+                                iconAnchor: [16, 16]
+                            });
+                            return L.marker(latlng, { icon: thumbIcon });
+                        } else {
+                            itemLatLngs.push(latlng);
+                            return L.marker(latlng, { icon: photoIcon });
+                        }
                     },
                     onEachFeature: function(feature, layer) {
                         layer.bindPopup(createPopupContent(feature));
