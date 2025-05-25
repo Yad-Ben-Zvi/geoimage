@@ -69,10 +69,17 @@
             iconAnchor: [12, 12]
         });
 
-        // Initialize the map
+        // Israel bounding box (approximate)
+        const ISRAEL_BOUNDS = L.latLngBounds([
+            [29.45, 34.25], // Southwest (Eilat area)
+            [33.33, 35.9]   // Northeast (Metula area)
+        ]);
+
+        // Initialize the map with Israel bounds
         const map = L.map('map', {
-            zoomControl: false  // We'll add it back in a better position
+            zoomControl: false
         });
+        map.fitBounds(ISRAEL_BOUNDS);
 
         // Define base layers
         const osmLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -176,8 +183,19 @@
                     (position) => {
                         const { latitude, longitude } = position.coords;
                         if (itemLatLngs && itemLatLngs.length > 0) {
-                            // Create a LatLngBounds that includes user and at least one item
-                            const bounds = L.latLngBounds([ [latitude, longitude], ...itemLatLngs ]);
+                            // Find the closest marker to the user
+                            let minDist = Infinity;
+                            let closest = null;
+                            const userLatLng = L.latLng(latitude, longitude);
+                            itemLatLngs.forEach(ll => {
+                                const dist = userLatLng.distanceTo(ll);
+                                if (dist < minDist) {
+                                    minDist = dist;
+                                    closest = ll;
+                                }
+                            });
+                            // Fit bounds to user and closest marker
+                            const bounds = L.latLngBounds([userLatLng, closest]);
                             map.fitBounds(bounds, { padding: [50, 50] });
                         } else {
                             map.setView([latitude, longitude], 15);
@@ -188,7 +206,7 @@
                     // Error callback
                     (error) => {
                         console.log("Geolocation error:", error);
-                        centerOnIsrael();
+                        // Do nothing, keep initial Israel bounds
                     },
                     // Options
                     {
@@ -199,7 +217,7 @@
                 );
             } else {
                 console.log("Geolocation not supported");
-                centerOnIsrael();
+                // Do nothing, keep initial Israel bounds
             }
         }
 
