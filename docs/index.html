@@ -53,16 +53,47 @@
             overflow: hidden;
             border: 2px solid #fff;
             box-shadow: 0 2px 4px rgba(0,0,0,0.3);
-            background: #3388ff;
+            background: #e0e0e0;
             display: flex;
             align-items: center;
             justify-content: center;
+            position: relative;
         }
         .thumbnail-marker img {
             width: 100%;
             height: 100%;
             object-fit: cover;
             display: block;
+            position: absolute;
+            top: 0; left: 0;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+        .thumbnail-marker img.loaded {
+            opacity: 1;
+        }
+        .thumbnail-placeholder {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background: #bdbdbd;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .thumbnail-placeholder::after {
+            content: '';
+            display: block;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            border: 2px solid #fff;
+            border-top: 2px solid #bdbdbd;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
         }
     </style>
 </head>
@@ -248,9 +279,26 @@
                     pointToLayer: function(feature, latlng) {
                         const imgUrl = feature.properties.image;
                         if (imgUrl) {
+                            // Create a divIcon with a placeholder and lazy-load the image
+                            const iconDiv = document.createElement('div');
+                            iconDiv.className = 'thumbnail-marker';
+                            // Placeholder
+                            const placeholder = document.createElement('div');
+                            placeholder.className = 'thumbnail-placeholder';
+                            iconDiv.appendChild(placeholder);
+                            // Image
+                            const img = document.createElement('img');
+                            img.src = imgUrl;
+                            img.alt = '';
+                            img.loading = 'lazy';
+                            img.onload = function() {
+                                img.classList.add('loaded');
+                                placeholder.style.display = 'none';
+                            };
+                            iconDiv.appendChild(img);
                             const thumbIcon = L.divIcon({
                                 className: 'thumbnail-marker',
-                                html: `<img src="${imgUrl}" alt="" loading="lazy">`,
+                                html: iconDiv.innerHTML,
                                 iconSize: [32, 32],
                                 iconAnchor: [16, 16]
                             });
